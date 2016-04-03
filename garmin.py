@@ -62,7 +62,7 @@ class GarminClient(object):
             password.send_keys(Keys.ENTER)
             log.debug('Iframe form submitted')
 
-            for i in range(0, 10):
+            for i in range(0, 20):
                 if settings['garmin']['login_url'] != self.driver.driver.current_url:
                     break
                 sleep(0.5)

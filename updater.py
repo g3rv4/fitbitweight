@@ -12,15 +12,11 @@ class Updater(object):
 
     def update(self):
         fitbit_client = fitbit.FitbitClient(self.account)
+        fitbit_client.verify_subscription()
         new_fitbit = fitbit_client.get_weights()
 
         with garmin.GarminClient(self.account) as garmin_client:
-            new_garmin = garmin_client.get_weights()
-
             old_fitbit = self.account.latest_fitbit.get('data', {})
-            old_garmin = self.account.latest_garmin.get('data', {})
-
-            # detect deletions on garmin
 
             # detect additions on fitbit
             for logId in [i for i in new_fitbit if i not in old_fitbit]:

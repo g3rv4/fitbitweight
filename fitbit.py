@@ -72,6 +72,7 @@ class FitbitClient(object):
                 self.creds.auth_token = data['access_token']
                 self.creds.auth_expiration = datetime.datetime.now() + datetime.timedelta(seconds=data['expires_in'])
                 self.creds.save()
+                self.verify_subscription()
                 log.debug('Grabbed refresh and auth tokens')
             else:
                 log.error('Error authenticating')
@@ -100,22 +101,34 @@ class FitbitClient(object):
 
         return self.creds.auth_token
 
+    def send_method(self, url, f, **kwargs):
+        response = f(url, self.get_auth_token(), **kwargs)
+
+        if response.status_code == 401:
+            log.debug('Unauthorized, refreshing auth token')
+            response = f(url, self.get_auth_token(True), **kwargs)
+        if response.status_code in (200, 201):
+            data = json.loads(response.text)
+            return data
+
+        log.error('Unrecognised status code :S')
+        raise ErrorQueryingApiFitbitException(response.status_code)
+
     def get(self, url):
         def get_response(url, token):
             return requests.get('https://api.fitbit.com/1/user/%s/%s' % (self.creds.user_id, url), headers={
                 'Authorization': 'Bearer %s' % token
             })
 
-        response = get_response(url, self.get_auth_token())
-        if response.status_code == 401:
-            log.debug('Unauthorized, refreshing auth token')
-            response = get_response(url, self.get_auth_token(True))
-        if response.status_code == 200:
-            data = json.loads(response.text)
-            return data
+        return self.send_method(url, get_response)
 
-        log.error('Unrecognised status code :S')
-        raise ErrorQueryingApiFitbitException(response.status_code)
+    def post(self, url, data):
+        def do_post(url, token, data):
+            return requests.post('https://api.fitbit.com/1/user/%s/%s' % (self.creds.user_id, url), data, headers={
+                'Authorization': 'Bearer %s' % token
+            })
+
+        return self.send_method(url, do_post, data=data)
 
     def get_weights(self):
         current = self.account.start_date
@@ -130,3 +143,9 @@ class FitbitClient(object):
             items.update({item['logId']: item for item in data})
 
         return items
+
+    def verify_subscription(self):
+        subscriptions = self.get('body/apiSubscriptions.json')
+        if not subscriptions['apiSubscriptions']:
+            self.post('body/apiSubscriptions/%s.json' % self.account.pk, {})
+        print subscriptions
