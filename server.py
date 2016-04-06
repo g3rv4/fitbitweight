@@ -25,7 +25,7 @@ def callback():
 @app.route('/fitbit-subscriber', methods=['POST', 'GET'])
 def subscriber():
     if request.args.get('verify'):
-        if request.args.get('verify') != settings['verify']['subscriber_endpoint_verify']:
+        if request.args.get('verify') != settings['fitbit']['subscriber_endpoint_verify']:
             abort(404)
         return '', 204
 
