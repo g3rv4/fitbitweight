@@ -1,20 +1,13 @@
 from flask import Flask, request, abort
 from werkzeug.contrib.fixers import ProxyFix
 from config import settings
-import logging
+import utils
 import tasks
 
 app = Flask(__name__)
 app.wsgi_app = ProxyFix(app.wsgi_app)
 
-if 'log_path' in settings and settings['log_path']:
-    handler = logging.handlers.RotatingFileHandler(settings['log_path'])
-    handler.setLevel(logging.ERROR)
-    handler.setFormatter(logging.Formatter(
-        '%(asctime)s %(levelname)s: %(message)s '
-        '[in %(pathname)s:%(lineno)d]'
-    ))
-    app.logger.addHandler(handler)
+app.logger.addHandler(utils.handler)
 
 
 @app.route('/', methods=['POST', 'GET'])

@@ -6,10 +6,9 @@ from dateutil.relativedelta import relativedelta
 from selenium.webdriver.common.keys import Keys
 from time import sleep
 from decimal import Decimal
-import logger
 
 
-log = logger.getLogger(__name__)
+log = utils.get_logger(__name__)
 
 
 class GarminException(Exception):

@@ -1,5 +1,6 @@
 import seleniumrequests
 from config import settings
+import logging
 
 
 class MyDriver(object):
@@ -17,3 +18,25 @@ class MyDriver(object):
         def method(*args, **kwargs):
             return getattr(self.driver, name)(*args, **kwargs)
         return method
+
+if 'log_path' in settings and settings['log_path']:
+    handler = logging.handlers.RotatingFileHandler(settings['log_path'])
+    handler.setLevel(logging.WARNING)
+else:
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.DEBUG)
+
+handler.setFormatter(logging.Formatter(
+    '%(asctime)s %(name)-40s-%(lineno)-4s %(levelname)-8s %(message)s'
+))
+
+
+def get_logger(name):
+    logger = logging.getLogger(name)
+    logger.setLevel(logging.DEBUG)
+
+    if not len(logger.handlers):
+        logger.addHandler(handler)
+        logger.propagate = False
+
+    return logger

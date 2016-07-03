@@ -8,10 +8,9 @@ import datetime
 import requests
 import base64
 import json
-import logger
 
 
-log = logger.getLogger(__name__)
+log = utils.get_logger(__name__)
 
 
 class FitbitException(Exception):

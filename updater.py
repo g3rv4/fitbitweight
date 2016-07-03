@@ -1,9 +1,9 @@
 import fitbit
 import garmin
-import logger
+import utils
 import datetime
 
-log = logger.getLogger(__name__)
+log = utils.get_logger(__name__)
 
 
 class Updater(object):

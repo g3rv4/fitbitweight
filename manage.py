@@ -3,14 +3,15 @@ import models
 import updater
 from getpass import getpass
 from dateutil.parser import parse as parse_date
-import logger
+import utils
+import garmin
 
 
-log = logger.getLogger(__name__)
+log = utils.get_logger(__name__)
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--action", help="action to execute", required=True, choices=['add-account', 'update'])
+parser.add_argument("--action", help="action to execute", required=True, choices=['add-account', 'update', 'deleteDani'])
 args = parser.parse_known_args()[0]
 
 if args.action == 'add-account':
@@ -40,3 +41,9 @@ elif args.action == 'update':
         log.debug('Processing account %s' % account.nickname)
         upd = updater.Updater(account)
         upd.update()
+elif args.action == 'deleteDani':
+    account = models.Account.objects.get(nickname='dani')
+    with garmin.GarminClient(account) as garmin_client:
+        garmin_client.delete_all_weights()
+        account.latest_fitbit = {}
+        account.save()
